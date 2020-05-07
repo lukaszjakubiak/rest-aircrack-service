@@ -1,5 +1,12 @@
 {
     "env": {
-        "MONGO_ATLAS_PW": "operator"
+        "MONGO_ATLAS_PW": "operator",
+        "DICTIONARIES_PATH": "files/dictionaries/",
+        "DICTIONARIES": [
+            "rockyou.txt",
+            "8digitnumber.txt"
+        ],
+        "AIRCRACK_FOLDER": "files/aircrack/",
+        "CAPFILES_FOLDER": "files/cap_files/"
     }
 }

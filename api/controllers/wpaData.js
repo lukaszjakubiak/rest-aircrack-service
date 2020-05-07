@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const dataProcessor = require('../../logic/dataProcessor');
+const dataProcessor = require('../../logic/DataProcessor');
 const wpaDataDao = require('../../db/wpaDataDao');
 
 const WPAData = require('../models/wpaData');
@@ -10,14 +10,17 @@ exports.get_all = (req, res, next) => {
         .then(results => {
             console.log(results);
             const objects = results.map(wpaData => {
-                return ({
-                    _id: wpaData._id,
-                    capfile: wpaData.capfile,
-                    apmac: wpaData.apmac,
-                    status: wpaData.status,
-                    progress: wpaData.progress,
-                    password: wpaData.password ? wpaData.password : ''
-                });
+                return (
+                    //     {
+                    //     _id: wpaData._id,
+                    //     capfile: wpaData.capfile,
+                    //     apmac: wpaData.apmac,
+                    //     status: wpaData.status,
+                    //     progress: wpaData.progress,
+                    //     password: wpaData.password ? wpaData.password : ''
+                    // }
+                    wpaData
+                );
             });
             res.status(200).json({
                 objects: objects
@@ -82,31 +85,36 @@ exports.create = (req, res, next) => {
     // console.log("body: %j", req.file);
     const capfile = req.file.path;
     const apmac = req.body.apmac;
+    // console.log(process);
+    // console.log('process.env %j', process.env);
+    // console.log('process.env.aircrack ' + process.env.aircrack);
+
+    const dictionaries = process.env.DICTIONARIES;
+    console.log(dictionaries);
+    console.log(process.env.MONGO_ATLAS_PW);
+    console.log(process.env.DICTIONARIES_PATH);
     const newWPAData = new WPAData({
         _id: mongoose.Types.ObjectId(),
         capfile: capfile,
-        apmac: apmac
+        apmac: apmac,
+        createdTime: Date.now(),
+        dictionaries: dictionaries
     });
-    console.log(newWPAData);
+    // console.log(newWPAData);
     newWPAData.save()
         .then(wpaData => {
             console.log(wpaData);
-            res.status(200).json({
-                _id: wpaData._id,
-                capfile: wpaData.capfile,
-                apmac: wpaData.apmac,
-                status: wpaData.status
-            });
+            // res.status(200).json({
+            //     _id: wpaData._id,
+            //     capfile: wpaData.capfile,
+            //     apmac: wpaData.apmac,
+            //     status: wpaData.status
+            // });
+            res.status(200).json(wpaData);
             console.log('create.processData _id: ' + wpaData._id);
             // reviewData(wpaData._id);
-            dataProcessor.startProcessing(wpaData._id);
+            // dataProcessor.startProcessing(wpaData._id);
         })
-        // wpaDataDao.save(newWPAData)
-        // .then(wpaData => {
-        //     console.log('create.processData _id: ' + wpaData._id);
-        //     // reviewData(wpaData._id);
-        //     // dataProcessor.startProcessing();
-        // })
         .catch(error => {
             console.log(error);
             res.status(500).json({
@@ -132,44 +140,3 @@ exports.deleteAll = (req, res, next) => {
         });
 }
 
-
-
-const reviewData = _id => {
-    const job = setInterval((_id) => {
-        getWPAData(_id)
-            .then(wpaData => {
-                console.log('From DB: ' + wpaData);
-                const updatedOps = {
-                    _id: wpaData._id,
-                    progress: wpaData.progress + 10,
-                    status: (wpaData.progress + 10) === 40 ? 'finished' : wpaData.status
-                }
-                console.log('Updated updatedOps: ' + updatedOps);
-                for (let key in updatedOps) {
-                    console.log('Key: ' + key + ', value: ' + updatedOps[key]);
-                }
-                const updatedQuery = updateWPAData(updatedOps);
-                if (updatedOps.status === 'finished') {
-                    console.log('Killing interval!');
-                    clearInterval(job);
-                }
-                return updatedQuery;
-            })
-            .catch(error => {
-                console.log(error);
-                // res.status(500).json()
-            });
-    }, 5000, _id);
-};
-
-const getWPAData = (_id) => {
-    return WPAData.findById(_id)
-        .exec();//returning promise
-}
-
-// updatedOps is non-JSON object
-const updateWPAData = updatedOps => {
-    const id = updatedOps._id;
-    return WPAData.updateOne({ _id: id }, { $set: updatedOps })
-        .exec();//returning promise
-};

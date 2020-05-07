@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const morgan = require('morgan');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
@@ -42,11 +43,11 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use('/files', express.static('uploads'));
+// app.use('/files', express.static('uploads'));
 
 const wpaDataRoutes = require('./api/routes/wpaData');
 
-// app.use(morgan('dev'));
+app.use(morgan('combined'));
 // app.use('/uploads', express.static('uploads'));
 app.use(bodyParser.urlencoded({
     extended: false
@@ -71,6 +72,10 @@ app.use((error, req, res, next) => {
         }
     });
 });
+
+
+const workerOnInterval = require('./logic/WorkerOnInterval');
+workerOnInterval.periodicalCheck();
 
 
 module.exports = app;

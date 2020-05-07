@@ -6,7 +6,7 @@ const WPADataSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    apmac: { 
+    apmac: {
         type: String,
         required: true
     },
@@ -15,9 +15,25 @@ const WPADataSchema = mongoose.Schema({
         required: true,
         default: 'accepted'
     },
+    createdTime: {
+        type: Date,
+        required: true
+    },
+    dictionaries: {
+        type: String
+    },
+    currentDictionary: {
+        dict: Number
+    },
     progress: {
-        type: Number,
-        default: 0
+        dictionary: {
+            type: Number,
+            default: 0
+        },
+        precentage: {
+            type: Number,
+            default: 0
+        }
     },
     password: {
         type: String
